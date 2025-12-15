@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../constants/color_constant.dart';
 import '../models/koleksi_model.dart';
 import 'add_edit_screen.dart';
 import 'detail_screen.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  final bool isAdmin; // Menerima status apakah user ini admin atau bukan
+
+  const HomeScreen({super.key, required this.isAdmin});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -22,9 +29,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return daftarKoleksi.where((item) {
       final matchesSearch =
           item.nama.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          item.deskripsi.toLowerCase().contains(_searchQuery.toLowerCase());
-      final matchesCategory =
-          _selectedCategory == 'Semua Kategori' ||
+              item.deskripsi.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesCategory = _selectedCategory == 'Semua Kategori' ||
           item.kategori == _selectedCategory;
       return matchesSearch && matchesCategory;
     }).toList();
@@ -49,14 +55,21 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => DetailScreen(
         koleksi: item,
-        onEdit: () {
-          Navigator.pop(context);
-          _showEditDialog(item, index);
-        },
-        onDelete: () {
-          Navigator.pop(context);
-          _showDeleteConfirmation(index);
-        },
+        // LOGIKA PENTING:
+        // Jika Admin, kirim fungsi Edit & Delete.
+        // Jika User biasa, kirim 'null' (biar tombolnya hilang).
+        onEdit: widget.isAdmin
+            ? () {
+                Navigator.pop(context);
+                _showEditDialog(item, index);
+              }
+            : null,
+        onDelete: widget.isAdmin
+            ? () {
+                Navigator.pop(context);
+                _showDeleteConfirmation(index);
+              }
+            : null,
       ),
     );
   }
@@ -81,27 +94,17 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        icon: Icon(Icons.warning_rounded, color: Colors.red, size: 48),
         title: Text('Hapus Koleksi'),
-        content: Text(
-          'Apakah Anda yakin ingin menghapus koleksi "${item.nama}"? Data yang sudah dihapus tidak dapat dikembalikan.',
-          textAlign: TextAlign.center,
-        ),
+        content: Text('Hapus "${item.nama}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Batal', style: TextStyle(color: Colors.grey)),
+            child: Text('Batal'),
           ),
           ElevatedButton(
             onPressed: () {
-              setState(() {
-                daftarKoleksi.removeAt(index);
-              });
+              setState(() => daftarKoleksi.removeAt(index));
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Koleksi berhasil dihapus')),
-              );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: Text('Hapus', style: TextStyle(color: Colors.white)),
@@ -111,10 +114,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _logout() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: ColorConstant.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -122,70 +132,92 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Museum Collection',
-              style: TextStyle(
-                color: Colors.black,
+              // Ubah judul tergantung role
+              widget.isAdmin ? 'Admin Dashboard' : 'Katalog Museum',
+              style: GoogleFonts.inter(
+                color: ColorConstant.textTitle,
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
             ),
             Text(
-              'Sistem Manajemen Koleksi Barang Museum',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+              widget.isAdmin
+                  ? 'Kelola koleksi museum'
+                  : 'Jelajahi koleksi bersejarah',
+              style: GoogleFonts.inter(color: Colors.grey, fontSize: 12),
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout, color: Colors.red),
+            onPressed: _logout,
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddDialog,
-        backgroundColor: Colors.blue,
-        icon: Icon(Icons.add),
-        label: Text('Tambah Koleksi'),
-      ),
+      // Tombol Tambah HANYA muncul jika isAdmin = true
+      floatingActionButton: widget.isAdmin
+          ? FloatingActionButton.extended(
+              onPressed: _showAddDialog,
+              backgroundColor: ColorConstant.primary,
+              icon: Icon(Icons.add, color: Colors.white),
+              label:
+                  Text('Tambah', style: GoogleFonts.inter(color: Colors.white)),
+            )
+          : null,
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(14),
+          padding: EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Search Bar
-              SearchBar(
-                hintText:
-                    'Cari koleksi berdasarkan nama, kategori, atau deskripsi...',
-                leading: Icon(Icons.search),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                  decoration: InputDecoration(
+                    hintText: 'Cari koleksi...',
+                    hintStyle: GoogleFonts.inter(color: Colors.grey),
+                    prefixIcon:
+                        Icon(Icons.search, color: ColorConstant.primary),
+                    border: InputBorder.none,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
+                ),
               ),
               SizedBox(height: 16),
 
-              // Category Filter
+              // Filter Category
               Align(
                 alignment: Alignment.centerRight,
-                child: DropdownButton<String>(
-                  value: _selectedCategory,
-                  underline: SizedBox(),
-                  items: _categories.map((category) {
-                    return DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCategory = value!;
-                    });
-                  },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButton<String>(
+                    value: _selectedCategory,
+                    underline: SizedBox(),
+                    items: _categories
+                        .map((c) => DropdownMenuItem(
+                            value: c,
+                            child: Text(c, style: GoogleFonts.inter())))
+                        .toList(),
+                    onChanged: (v) => setState(() => _selectedCategory = v!),
+                  ),
                 ),
-              ),
-              SizedBox(height: 8),
-
-              // Count
-              Text(
-                'Menampilkan ${_filteredItems.length} dari ${daftarKoleksi.length} koleksi',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
               SizedBox(height: 16),
 
@@ -193,120 +225,82 @@ class _HomeScreenState extends State<HomeScreen> {
               _filteredItems.isEmpty
                   ? Center(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 40),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.inbox,
-                              size: 64,
-                              color: Colors.grey[300],
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'Tidak ada koleksi',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
+                        padding: const EdgeInsets.only(top: 50),
+                        child: Text("Tidak ada data",
+                            style: GoogleFonts.inter(color: Colors.grey)),
                       ),
                     )
                   : GridView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.8,
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.75,
                       ),
                       itemCount: _filteredItems.length,
                       itemBuilder: (context, index) {
                         final item = _filteredItems[index];
-                        final realIndex = daftarKoleksi.indexWhere(
-                          (e) => e.id == item.id,
-                        );
+                        final realIndex = daftarKoleksi.indexOf(item);
 
                         return GestureDetector(
                           onTap: () => _showDetailDialog(item, realIndex),
-                          child: Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Image
-                                ClipRRect(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(12),
-                                    topRight: Radius.circular(12),
-                                  ),
-                                  child: Image.network(
-                                    item.urlGambar,
-                                    height: 100,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (ctx, error, stackTrace) =>
-                                        Container(
-                                          height: 100,
-                                          color: Colors.grey[300],
-                                          child: Icon(
-                                            Icons.broken_image,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(16)),
+                                    child: Image.network(
+                                      item.urlGambar,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        color: Colors.grey[200],
+                                        child: Center(
+                                            child: Icon(Icons.broken_image,
+                                                color: Colors.grey)),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                // Content
-                                Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item.nama,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                          ),
+                                Padding(
+                                  padding: EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.nama,
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                          color: ColorConstant.textTitle,
                                         ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          item.kategori,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                        Spacer(),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: _getConditionColor(
-                                              item.kondisi,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            item.kondisi,
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        item.kategori,
+                                        style: GoogleFonts.inter(
+                                            fontSize: 12, color: Colors.grey),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -320,18 +314,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-
-  Color _getConditionColor(String kondisi) {
-    switch (kondisi) {
-      case 'Baik':
-        return Colors.green;
-      case 'Cukup':
-        return Colors.orange;
-      case 'Rusak':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
   }
 }

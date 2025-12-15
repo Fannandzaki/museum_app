@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/koleksi_model.dart';
+import '../constants/color_constant.dart';
 
 class DetailScreen extends StatelessWidget {
   final Koleksi koleksi;
+  // Callback ini akan NULL jika user biasa
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
@@ -10,54 +14,59 @@ class DetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Cek apakah mode admin (ada tombol edit/delete)
+    bool isAdminMode = onEdit != null && onDelete != null;
+
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header dengan close button
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Detail Koleksi',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            // Gambar Full Width di atas
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  child: Image.network(
+                    koleksi.urlGambar,
+                    width: double.infinity,
+                    height: 250,
+                    fit: BoxFit.cover,
+                    errorBuilder: (ctx, error, stackTrace) => Container(
+                      height: 250,
+                      color: Colors.grey[200],
+                      child: Center(
+                          child: Icon(Icons.broken_image,
+                              size: 50, color: Colors.grey)),
+                    ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-
-            // Image
-            Container(
-              width: double.infinity,
-              height: 200,
-              color: Colors.grey[200],
-              child: Image.network(
-                koleksi.urlGambar,
-                fit: BoxFit.cover,
-                errorBuilder: (ctx, error, stackTrace) => Center(
-                  child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
                 ),
-              ),
+                // Tombol Close Melayang
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black.withOpacity(0.5),
+                    child: IconButton(
+                      icon: Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
-            // Content
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title dan kondisi
+                  // Judul & Kategori
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
@@ -66,107 +75,114 @@ class DetailScreen extends StatelessWidget {
                           children: [
                             Text(
                               koleksi.nama,
-                              style: TextStyle(
-                                fontSize: 20,
+                              style: GoogleFonts.inter(
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
+                                color: ColorConstant.textTitle,
                               ),
                             ),
-                            SizedBox(height: 8),
                             Text(
                               koleksi.kategori,
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
+                              style: GoogleFonts.inter(
+                                color: ColorConstant.primary,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _getConditionColor(koleksi.kondisi),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                            color: _getConditionColor(koleksi.kondisi)
+                                .withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: _getConditionColor(koleksi.kondisi)
+                                    .withOpacity(0.5))),
                         child: Text(
                           koleksi.kondisi,
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          style: GoogleFonts.inter(
+                              color: _getConditionColor(koleksi.kondisi),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const Gap(20),
 
-                  // Info Grid
+                  // Info Cards (Tahun, Lokasi, Kreator)
                   Row(
                     children: [
-                      Expanded(
-                        child: _infoCard(
-                          Icons.calendar_month,
-                          'Tahun',
-                          '${koleksi.tahun}-an',
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: _infoCard(
-                          Icons.location_on,
-                          'Lokasi',
-                          koleksi.lokasi,
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: _infoCard(Icons.code, 'ID Koleksi', koleksi.id),
-                      ),
+                      _infoItem(
+                          Icons.calendar_today, "Tahun", "${koleksi.tahun}"),
+                      _infoItem(
+                          Icons.person_outline, "Kreator", koleksi.creatorName),
+                      _infoItem(
+                          Icons.location_on_outlined, "Lokasi", koleksi.lokasi),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const Gap(24),
 
                   // Deskripsi
                   Text(
-                    'Deskripsi',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    "Tentang Koleksi",
+                    style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  SizedBox(height: 8),
+                  const Gap(8),
                   Text(
                     koleksi.deskripsi,
-                    style: TextStyle(fontSize: 14, height: 1.5),
+                    style:
+                        GoogleFonts.inter(color: Colors.grey[700], height: 1.6),
                   ),
-                  SizedBox(height: 20),
+                  const Gap(30),
 
-                  // Buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: onEdit,
-                          icon: Icon(Icons.edit),
-                          label: Text('Edit'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
+                  // LOGIKA: Tombol hanya muncul jika isAdminMode = true
+                  if (isAdminMode) ...[
+                    Divider(),
+                    const Gap(10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: onEdit,
+                            icon: Icon(Icons.edit, size: 18),
+                            label: Text('Edit'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.blue,
+                              side: BorderSide(color: Colors.blue),
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: onDelete,
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          label: Text(
-                            'Hapus',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: Colors.red),
+                        const Gap(12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: onDelete,
+                            icon: Icon(Icons.delete,
+                                size: 18, color: Colors.white),
+                            label: Text('Hapus',
+                                style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              elevation: 0,
+                            ),
                           ),
                         ),
+                      ],
+                    ),
+                  ] else ...[
+                    // Tampilan User Biasa (Hanya pesan kecil atau kosong)
+                    Center(
+                      child: Text(
+                        "~ Museum Digital 2025 ~",
+                        style: GoogleFonts.inter(
+                            color: Colors.grey[300], fontSize: 12),
                       ),
-                    ],
-                  ),
+                    )
+                  ]
                 ],
               ),
             ),
@@ -176,21 +192,23 @@ class DetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoCard(IconData icon, String label, String value) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.grey, size: 20),
-        SizedBox(height: 8),
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey)),
-        SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+  Widget _infoItem(IconData icon, String label, String value) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.grey, size: 20),
+          const Gap(4),
+          Text(label,
+              style: GoogleFonts.inter(fontSize: 10, color: Colors.grey)),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 
