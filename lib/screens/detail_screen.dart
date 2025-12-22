@@ -85,24 +85,6 @@ class DetailScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                            color: _getConditionColor(koleksi.kondisi)
-                                .withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                                color: _getConditionColor(koleksi.kondisi)
-                                    .withOpacity(0.5))),
-                        child: Text(
-                          koleksi.kondisi,
-                          style: GoogleFonts.inter(
-                              color: _getConditionColor(koleksi.kondisi),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12),
-                        ),
-                      ),
                     ],
                   ),
                   const Gap(20),
@@ -204,18 +186,5 @@ class DetailScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Color _getConditionColor(String kondisi) {
-    switch (kondisi) {
-      case 'Baik':
-        return Colors.green;
-      case 'Cukup':
-        return Colors.orange;
-      case 'Rusak':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
   }
 }

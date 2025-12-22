@@ -1,5 +1,3 @@
-import 'dart:io'; // Tambahan untuk File
-import 'package:flutter/foundation.dart'; // Tambahan untuk kIsWeb
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,9 +29,7 @@ class _AddEditScreenState extends State<AddEditScreen> {
   String _imagePath = '';
 
   String _selectedType = 'Lukisan';
-  String _selectedKondisi = 'Baik';
   final List<String> _types = ['Lukisan', 'Patung', 'Fotografi'];
-  final List<String> _kondisiList = ['Baik', 'Cukup', 'Rusak'];
 
   @override
   void initState() {
@@ -48,7 +44,6 @@ class _AddEditScreenState extends State<AddEditScreen> {
 
       // Isi path gambar dari data lama
       _imagePath = item.urlGambar;
-      _selectedKondisi = item.kondisi;
 
       if (item is Lukisan) {
         _selectedType = 'Lukisan';
@@ -112,7 +107,6 @@ class _AddEditScreenState extends State<AddEditScreen> {
             deskripsi: deskripsi,
             tahun: tahun,
             pelukis: extra,
-            kondisi: _selectedKondisi,
             lokasi: lokasi,
             urlGambar: _imagePath);
       } else if (_selectedType == 'Patung') {
@@ -122,7 +116,6 @@ class _AddEditScreenState extends State<AddEditScreen> {
             deskripsi: deskripsi,
             tahun: tahun,
             pematung: extra,
-            kondisi: _selectedKondisi,
             lokasi: lokasi,
             urlGambar: _imagePath);
       } else {
@@ -132,7 +125,6 @@ class _AddEditScreenState extends State<AddEditScreen> {
             deskripsi: deskripsi,
             tahun: tahun,
             fotografer: extra,
-            kondisi: _selectedKondisi,
             lokasi: lokasi,
             urlGambar: _imagePath);
       }
@@ -244,14 +236,6 @@ class _AddEditScreenState extends State<AddEditScreen> {
                                 isNumber: true)
                           ])),
                       const Gap(16),
-                      Expanded(
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                            _buildLabel("Kondisi"),
-                            _buildDropdown(_kondisiList, _selectedKondisi,
-                                (v) => setState(() => _selectedKondisi = v!))
-                          ])),
                     ]),
                     const Gap(16),
                     _buildLabel(_extraLabel),
