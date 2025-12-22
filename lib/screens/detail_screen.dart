@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/koleksi_model.dart';
 import '../constants/color_constant.dart';
+import '../widgets/koleksi_image.dart';
 
 class DetailScreen extends StatelessWidget {
   final Koleksi koleksi;
@@ -31,18 +32,11 @@ class DetailScreen extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Image.network(
-                    koleksi.urlGambar,
+                  child: KoleksiImage(
+                    imagePath: koleksi.urlGambar, // Pakai widget baru
                     width: double.infinity,
                     height: 250,
                     fit: BoxFit.cover,
-                    errorBuilder: (ctx, error, stackTrace) => Container(
-                      height: 250,
-                      color: Colors.grey[200],
-                      child: Center(
-                          child: Icon(Icons.broken_image,
-                              size: 50, color: Colors.grey)),
-                    ),
                   ),
                 ),
                 // Tombol Close Melayang

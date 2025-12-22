@@ -5,6 +5,7 @@ import '../models/koleksi_model.dart';
 import 'add_edit_screen.dart';
 import 'detail_screen.dart';
 import 'login_screen.dart';
+import '../widgets/koleksi_image.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isAdmin; // Menerima status apakah user ini admin atau bukan
@@ -265,16 +266,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.vertical(
                                         top: Radius.circular(16)),
-                                    child: Image.network(
-                                      item.urlGambar,
+                                    child: KoleksiImage(
+                                      imagePath:
+                                          item.urlGambar, // Pakai widget baru
                                       width: double.infinity,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        color: Colors.grey[200],
-                                        child: Center(
-                                            child: Icon(Icons.broken_image,
-                                                color: Colors.grey)),
-                                      ),
                                     ),
                                   ),
                                 ),

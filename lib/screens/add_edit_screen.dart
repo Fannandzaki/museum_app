@@ -1,8 +1,12 @@
+import 'dart:io'; // Tambahan untuk File
+import 'package:flutter/foundation.dart'; // Tambahan untuk kIsWeb
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart'; // Tambahan Image Picker
 import '../constants/color_constant.dart';
 import '../models/koleksi_model.dart';
+import '../widgets/koleksi_image.dart'; // Import widget gambar baru
 
 class AddEditScreen extends StatefulWidget {
   final Koleksi? koleksi;
@@ -21,10 +25,10 @@ class _AddEditScreenState extends State<AddEditScreen> {
   final _namaController = TextEditingController();
   final _deskripsiController = TextEditingController();
   final _tahunController = TextEditingController();
-  final _extraController =
-      TextEditingController(); // Untuk Pelukis/Pematung/Fotografer
+  final _extraController = TextEditingController();
   final _lokasiController = TextEditingController();
-  final _urlGambarController = TextEditingController();
+  // Controller gambar kita hapus, ganti jadi variabel string path
+  String _imagePath = '';
 
   String _selectedType = 'Lukisan';
   String _selectedKondisi = 'Baik';
@@ -41,7 +45,9 @@ class _AddEditScreenState extends State<AddEditScreen> {
       _deskripsiController.text = item.deskripsi;
       _tahunController.text = item.tahun.toString();
       _lokasiController.text = item.lokasi;
-      _urlGambarController.text = item.urlGambar;
+
+      // Isi path gambar dari data lama
+      _imagePath = item.urlGambar;
       _selectedKondisi = item.kondisi;
 
       if (item is Lukisan) {
@@ -57,7 +63,19 @@ class _AddEditScreenState extends State<AddEditScreen> {
     }
   }
 
-  // Label dinamis untuk input "Extra" sesuai kategori
+  // Fungsi Ambil Gambar (Picker)
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    // Buka Galeri
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _imagePath = image.path; // Simpan path gambar
+      });
+    }
+  }
+
   String get _extraLabel {
     if (_selectedType == 'Patung') return 'Nama Pematung';
     if (_selectedType == 'Fotografi') return 'Nama Fotografer';
@@ -66,6 +84,16 @@ class _AddEditScreenState extends State<AddEditScreen> {
 
   void _saveData() {
     if (_formKey.currentState!.validate()) {
+      // Validasi Gambar
+      if (_imagePath.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Harap pilih gambar koleksi!'),
+              backgroundColor: Colors.red),
+        );
+        return;
+      }
+
       String id = _idController.text.isEmpty
           ? "ID-${DateTime.now().millisecondsSinceEpoch}"
           : _idController.text;
@@ -74,48 +102,42 @@ class _AddEditScreenState extends State<AddEditScreen> {
       int tahun = int.tryParse(_tahunController.text) ?? 0;
       String extra = _extraController.text;
       String lokasi = _lokasiController.text;
-      String urlGambar = _urlGambarController.text;
 
       Koleksi newItem;
 
       if (_selectedType == 'Lukisan') {
         newItem = Lukisan(
-          id: id,
-          nama: nama,
-          deskripsi: deskripsi,
-          tahun: tahun,
-          pelukis: extra,
-          kondisi: _selectedKondisi,
-          lokasi: lokasi,
-          urlGambar: urlGambar,
-        );
+            id: id,
+            nama: nama,
+            deskripsi: deskripsi,
+            tahun: tahun,
+            pelukis: extra,
+            kondisi: _selectedKondisi,
+            lokasi: lokasi,
+            urlGambar: _imagePath);
       } else if (_selectedType == 'Patung') {
         newItem = Patung(
-          id: id,
-          nama: nama,
-          deskripsi: deskripsi,
-          tahun: tahun,
-          pematung: extra,
-          kondisi: _selectedKondisi,
-          lokasi: lokasi,
-          urlGambar: urlGambar,
-        );
+            id: id,
+            nama: nama,
+            deskripsi: deskripsi,
+            tahun: tahun,
+            pematung: extra,
+            kondisi: _selectedKondisi,
+            lokasi: lokasi,
+            urlGambar: _imagePath);
       } else {
         newItem = Fotografi(
-          id: id,
-          nama: nama,
-          deskripsi: deskripsi,
-          tahun: tahun,
-          fotografer: extra,
-          kondisi: _selectedKondisi,
-          lokasi: lokasi,
-          urlGambar: urlGambar,
-        );
+            id: id,
+            nama: nama,
+            deskripsi: deskripsi,
+            tahun: tahun,
+            fotografer: extra,
+            kondisi: _selectedKondisi,
+            lokasi: lokasi,
+            urlGambar: _imagePath);
       }
 
-      if (widget.onSave != null) {
-        widget.onSave!(newItem);
-      }
+      if (widget.onSave != null) widget.onSave!(newItem);
     }
   }
 
@@ -125,7 +147,7 @@ class _AddEditScreenState extends State<AddEditScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // 1. HEADER (Mirip Project Smart)
+          // HEADER
           Container(
             padding:
                 const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
@@ -136,20 +158,17 @@ class _AddEditScreenState extends State<AddEditScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.koleksi == null ? 'Tambah Koleksi' : 'Edit Koleksi',
-                  style: GoogleFonts.inter(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                Text(widget.koleksi == null ? 'Tambah Koleksi' : 'Edit Koleksi',
+                    style: GoogleFonts.inter(
+                        fontSize: 20, fontWeight: FontWeight.bold)),
                 IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context)),
               ],
             ),
           ),
 
-          // 2. FORM SCROLLABLE
+          // FORM
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -158,154 +177,112 @@ class _AddEditScreenState extends State<AddEditScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Dropdown Kategori
-                    _buildLabel("Kategori Koleksi"),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedType,
-                          isExpanded: true,
-                          icon: Icon(Icons.keyboard_arrow_down,
-                              color: ColorConstant.primary),
-                          items: _types.map((type) {
-                            return DropdownMenuItem(
-                                value: type,
-                                child: Text(type, style: GoogleFonts.inter()));
-                          }).toList(),
-                          onChanged: widget.koleksi == null
-                              ? (value) {
-                                  setState(() {
-                                    _selectedType = value!;
-                                    _extraController.clear();
-                                  });
-                                }
-                              : null, // Disable change on Edit mode
+                    // --- AREA UPLOAD GAMBAR BARU ---
+                    _buildLabel("Foto Koleksi"),
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        width: double.infinity,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.grey[300]!),
                         ),
+                        child: _imagePath.isEmpty
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_photo_alternate_outlined,
+                                      size: 50, color: ColorConstant.primary),
+                                  const Gap(8),
+                                  Text("Klik untuk upload gambar",
+                                      style: GoogleFonts.inter(
+                                          color: Colors.grey)),
+                                ],
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: KoleksiImage(
+                                    imagePath: _imagePath, fit: BoxFit.cover),
+                              ),
                       ),
                     ),
+                    const Gap(8),
+                    if (_imagePath.isNotEmpty)
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: _pickImage,
+                          icon: Icon(Icons.refresh, size: 16),
+                          label: Text("Ganti Foto"),
+                        ),
+                      ),
                     const Gap(20),
+                    // -----------------------------
 
-                    // Input Nama
+                    _buildLabel("Kategori"),
+                    _buildDropdown(
+                        _types,
+                        _selectedType,
+                        (v) => setState(() {
+                              _selectedType = v!;
+                              _extraController.clear();
+                            })),
+                    const Gap(16),
                     _buildLabel("Nama Koleksi"),
-                    _buildTextField(
-                      controller: _namaController,
-                      hint: "Contoh: Keris Majapahit",
-                      icon: Icons.museum_outlined,
-                    ),
-                    const Gap(20),
-
-                    // Input Tahun & Kondisi (Side by Side)
-                    Row(
-                      children: [
-                        Expanded(
+                    _buildTextField(_namaController, "Contoh: Keris",
+                        Icons.museum_outlined),
+                    const Gap(16),
+                    Row(children: [
+                      Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildLabel("Tahun"),
-                              _buildTextField(
-                                controller: _tahunController,
-                                hint: "1400",
-                                icon: Icons.calendar_today,
-                                isNumber: true,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Gap(16),
-                        Expanded(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            _buildLabel("Tahun"),
+                            _buildTextField(
+                                _tahunController, "1400", Icons.calendar_today,
+                                isNumber: true)
+                          ])),
+                      const Gap(16),
+                      Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildLabel("Kondisi"),
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                height: 50, // Samakan tinggi dengan textfield
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[50],
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                    value: _selectedKondisi,
-                                    isExpanded: true,
-                                    items: _kondisiList.map((k) {
-                                      return DropdownMenuItem(
-                                          value: k,
-                                          child: Text(k,
-                                              style: GoogleFonts.inter(
-                                                  fontSize: 14)));
-                                    }).toList(),
-                                    onChanged: (v) =>
-                                        setState(() => _selectedKondisi = v!),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Gap(20),
-
-                    // Input Extra (Pelukis/Pematung/dll)
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            _buildLabel("Kondisi"),
+                            _buildDropdown(_kondisiList, _selectedKondisi,
+                                (v) => setState(() => _selectedKondisi = v!))
+                          ])),
+                    ]),
+                    const Gap(16),
                     _buildLabel(_extraLabel),
                     _buildTextField(
-                      controller: _extraController,
-                      hint: "Masukkan $_extraLabel",
-                      icon: Icons.person_outline,
-                    ),
-                    const Gap(20),
-
-                    // Lokasi
-                    _buildLabel("Lokasi Penyimpanan"),
+                        _extraController, "Nama...", Icons.person_outline),
+                    const Gap(16),
+                    _buildLabel("Lokasi"),
                     _buildTextField(
-                      controller: _lokasiController,
-                      hint: "Contoh: Ruang A - Rak 2",
-                      icon: Icons.location_on_outlined,
-                    ),
-                    const Gap(20),
-
-                    // URL Gambar
-                    _buildLabel("URL Gambar"),
+                        _lokasiController, "Rak A", Icons.location_on_outlined),
+                    const Gap(16),
+                    _buildLabel("Deskripsi"),
                     _buildTextField(
-                      controller: _urlGambarController,
-                      hint: "https://...",
-                      icon: Icons.image_outlined,
-                    ),
-                    const Gap(20),
-
-                    // Deskripsi
-                    _buildLabel("Deskripsi Lengkap"),
-                    _buildTextField(
-                      controller: _deskripsiController,
-                      hint: "Ceritakan sejarah koleksi ini...",
-                      icon: Icons.description_outlined,
-                      maxLines: 4,
-                    ),
-                    const Gap(40), // Space extra di bawah biar enak scroll
+                        _deskripsiController, "Jelaskan...", Icons.description,
+                        maxLines: 3),
+                    const Gap(40),
                   ],
                 ),
               ),
             ),
           ),
 
-          // 3. BOTTOM BUTTON (Sticky)
+          // TOMBOL SIMPAN
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
-                )
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5))
               ],
             ),
             child: SizedBox(
@@ -320,11 +297,9 @@ class _AddEditScreenState extends State<AddEditScreen> {
                       borderRadius: BorderRadius.circular(16)),
                   elevation: 0,
                 ),
-                child: Text(
-                  'Simpan Data',
-                  style: GoogleFonts.inter(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                child: Text('Simpan Data',
+                    style: GoogleFonts.inter(
+                        fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ),
@@ -334,28 +309,22 @@ class _AddEditScreenState extends State<AddEditScreen> {
   }
 
   // --- HELPER WIDGETS ---
-
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         text,
         style: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: ColorConstant.textTitle,
-        ),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: ColorConstant.textTitle),
       ),
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool isNumber = false,
-    int maxLines = 1,
-  }) {
+  Widget _buildTextField(
+      TextEditingController controller, String hint, IconData icon,
+      {bool isNumber = false, int maxLines = 1}) {
     return TextFormField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
@@ -369,22 +338,31 @@ class _AddEditScreenState extends State<AddEditScreen> {
         hintStyle: GoogleFonts.inter(color: Colors.grey[400]),
         prefixIcon: Icon(icon, color: Colors.grey[400], size: 20),
         filled: true,
-        fillColor:
-            Colors.grey[50], // Warna background abu muda ala Smart Project
+        fillColor: Colors.grey[50],
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none, // Hilangkan garis border
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-              color: ColorConstant.primary, width: 1.5), // Garis saat diklik
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none),
+      ),
+    );
+  }
+
+  Widget _buildDropdown(
+      List<String> items, String value, Function(String?) onChanged) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+          color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          items: items
+              .map((e) => DropdownMenuItem(
+                  value: e, child: Text(e, style: GoogleFonts.inter())))
+              .toList(),
+          onChanged: onChanged,
         ),
       ),
     );

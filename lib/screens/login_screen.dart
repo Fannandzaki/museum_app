@@ -19,14 +19,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Daftar User Biasa (Hanya Bisa Lihat)
   final Map<String, String> dataUser = {
-    "user": "user@museum.com",
-    "budi": "budi@gmail.com",
+    "pengunjung": "pengunjung@museum.com",
   };
 
   // Daftar Admin (Bisa Edit/Hapus)
   final Map<String, String> dataAdmin = {
     "admin": "admin@museum.com",
-    "fannan": "fannan@indo.com", // Contoh admin lain
   };
 
   void _handleLogin() {

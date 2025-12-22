@@ -39,16 +39,16 @@ class Lukisan extends Koleksi {
     required String urlGambar,
     required this.pelukis,
   }) : super(
-         id: id,
-         nama: nama,
-         deskripsi: deskripsi,
-         tahun: tahun,
-         kategori: 'Lukisan',
-         kondisi: kondisi,
-         lokasi: lokasi,
-         urlGambar: urlGambar,
-         creatorName: pelukis,
-       );
+          id: id,
+          nama: nama,
+          deskripsi: deskripsi,
+          tahun: tahun,
+          kategori: 'Lukisan',
+          kondisi: kondisi,
+          lokasi: lokasi,
+          urlGambar: urlGambar,
+          creatorName: pelukis,
+        );
 }
 
 // Class Turunan: Patung
@@ -65,16 +65,16 @@ class Patung extends Koleksi {
     required String urlGambar,
     required this.pematung,
   }) : super(
-         id: id,
-         nama: nama,
-         deskripsi: deskripsi,
-         tahun: tahun,
-         kategori: 'Patung',
-         kondisi: kondisi,
-         lokasi: lokasi,
-         urlGambar: urlGambar,
-         creatorName: pematung,
-       );
+          id: id,
+          nama: nama,
+          deskripsi: deskripsi,
+          tahun: tahun,
+          kategori: 'Patung',
+          kondisi: kondisi,
+          lokasi: lokasi,
+          urlGambar: urlGambar,
+          creatorName: pematung,
+        );
 }
 
 // Class Turunan: Fotografi
@@ -91,16 +91,16 @@ class Fotografi extends Koleksi {
     required String urlGambar,
     required this.fotografer,
   }) : super(
-         id: id,
-         nama: nama,
-         deskripsi: deskripsi,
-         tahun: tahun,
-         kategori: 'Fotografi',
-         kondisi: kondisi,
-         lokasi: lokasi,
-         urlGambar: urlGambar,
-         creatorName: fotografer,
-       );
+          id: id,
+          nama: nama,
+          deskripsi: deskripsi,
+          tahun: tahun,
+          kategori: 'Fotografi',
+          kondisi: kondisi,
+          lokasi: lokasi,
+          urlGambar: urlGambar,
+          creatorName: fotografer,
+        );
 }
 
 // Simpan data sementara di Memory (pengganti List global di console)
