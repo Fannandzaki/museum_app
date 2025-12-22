@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart'; // Import login
+import 'screens/welcome_screen.dart'; // Ganti import ini
 
 void main() {
   runApp(MyApp());
@@ -12,10 +12,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Museum App',
       theme: ThemeData(
-        // Ubah Primary Swatch agar tidak bentrok, tapi kita akan pakai ColorConstant manual
         useMaterial3: true,
       ),
-      home: LoginScreen(), // Ubah ke LoginScreen
+      home: const WelcomeScreen(), // Mulai dari WelcomeScreen
     );
   }
 }

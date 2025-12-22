@@ -17,12 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
 
-  // Daftar User Biasa (Hanya Bisa Lihat)
-  final Map<String, String> dataUser = {
-    "pengunjung": "pengunjung@museum.com",
-  };
-
-  // Daftar Admin (Bisa Edit/Hapus)
+  // Hanya Daftar Admin yang boleh login di sini
   final Map<String, String> dataAdmin = {
     "admin": "admin@museum.com",
   };
@@ -36,38 +31,27 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // 1. CEK ADMIN
+    // Cek Apakah dia Admin
     if (dataAdmin.containsKey(inputName) &&
         dataAdmin[inputName] == inputEmail) {
-      // Login sebagai ADMIN (isAdmin = true)
-      Navigator.pushReplacement(
+      // Login Berhasil -> Masuk sebagai Admin
+      Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => HomeScreen(isAdmin: true)),
+        MaterialPageRoute(
+            builder: (context) => const HomeScreen(isAdmin: true)),
+        (route) => false,
       );
-      return;
+    } else {
+      _showSnackBar("Akun Pengelola tidak ditemukan!", Colors.redAccent);
     }
-
-    // 2. CEK USER BIASA
-    if (dataUser.containsKey(inputName) && dataUser[inputName] == inputEmail) {
-      // Login sebagai USER (isAdmin = false)
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen(isAdmin: false)),
-      );
-      return;
-    }
-
-    // Jika tidak terdaftar
-    _showSnackBar("Nama atau Email salah / tidak terdaftar!", Colors.redAccent);
   }
 
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-      ),
+          content: Text(message),
+          backgroundColor: color,
+          behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -75,6 +59,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorConstant.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () =>
+              Navigator.pop(context), // Bisa kembali ke WelcomeScreen
+        ),
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -82,18 +75,19 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.museum_outlined,
+                Icon(Icons.admin_panel_settings,
                     size: 80, color: ColorConstant.primary),
                 const Gap(20),
                 Text(
-                  'Museum Login',
+                  'Login Pengelola',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     color: ColorConstant.textTitle,
-                    fontSize: 32,
+                    fontSize: 28,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+                const Text("Hanya untuk admin museum"),
                 const Gap(40),
                 Container(
                   padding: const EdgeInsets.all(24),
@@ -111,27 +105,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     children: [
                       InputWidget(
-                        lable: 'Nama Lengkap',
-                        controller: nameController,
-                      ),
+                          lable: 'Username Admin', controller: nameController),
                       const Gap(16),
                       InputWidget(
-                        lable: 'Alamat Email',
-                        controller: emailController,
-                      ),
+                          lable: 'Email Admin', controller: emailController),
                       const Gap(30),
                       Tombol(
-                        text: 'Masuk',
-                        isFullwidth: true,
-                        onPressed: _handleLogin,
-                      ),
+                          text: 'Masuk Dashboard',
+                          isFullwidth: true,
+                          onPressed: _handleLogin),
                     ],
                   ),
                 ),
                 const Gap(20),
                 const Text(
-                  "Hint Admin: 'admin' & 'admin@museum.com'\nHint User: 'user' & 'user@museum.com'",
-                  textAlign: TextAlign.center,
+                  "Hint: 'admin' & 'admin@museum.com'",
                   style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],

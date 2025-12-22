@@ -4,8 +4,8 @@ import '../constants/color_constant.dart';
 import '../models/koleksi_model.dart';
 import 'add_edit_screen.dart';
 import 'detail_screen.dart';
-import 'login_screen.dart';
 import '../widgets/koleksi_image.dart';
+import 'welcome_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isAdmin; // Menerima status apakah user ini admin atau bukan
@@ -116,9 +116,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _logout() {
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
+      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+      (route) => false,
     );
   }
 

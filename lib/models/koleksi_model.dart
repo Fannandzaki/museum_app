@@ -115,7 +115,7 @@ List<Koleksi> daftarKoleksi = [
     kondisi: 'Baik',
     lokasi: 'Ruang A - Rak 12',
     urlGambar:
-        'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=500&h=400&fit=crop',
+        '../../assets/images/keris-majapahit.jpg',
   ),
   Patung(
     id: 'P01',
@@ -127,7 +127,7 @@ List<Koleksi> daftarKoleksi = [
     kondisi: 'Cukup',
     lokasi: 'Ruang C - Display Utama',
     urlGambar:
-        'https://images.unsplash.com/photo-1578654881165-aab67dcf4a5b?w=500&h=400&fit=crop',
+        '../../assets/images/arca-ganesha.jpg',
   ),
   Fotografi(
     id: 'F01',
@@ -139,7 +139,7 @@ List<Koleksi> daftarKoleksi = [
     kondisi: 'Baik',
     lokasi: 'Ruang B - Rak 5',
     urlGambar:
-        'https://images.unsplash.com/photo-1578926078328-123d5d1d6b7f?w=500&h=400&fit=crop',
+        '../../assets/images/guci-dinasti-ming.jpg',
   ),
   Lukisan(
     id: 'L02',
@@ -151,7 +151,7 @@ List<Koleksi> daftarKoleksi = [
     kondisi: 'Cukup',
     lokasi: 'Ruang D - Rak 8',
     urlGambar:
-        'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=500&h=400&fit=crop',
+        '../../assets/images/kain-batik.jpg',
   ),
   Patung(
     id: 'P02',
@@ -163,6 +163,6 @@ List<Koleksi> daftarKoleksi = [
     kondisi: 'Baik',
     lokasi: 'Ruang A - Display 1',
     urlGambar:
-        'https://images.unsplash.com/photo-1605932832167-b744d0797c10?w=500&h=400&fit=crop',
+        '../../assets/images/prasasti-kuno.jpg',
   ),
 ];
